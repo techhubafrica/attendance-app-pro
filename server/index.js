@@ -29,6 +29,7 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
 });
 
+// origin:"http://localhost:5173",
 
 app.use(
   cors({
