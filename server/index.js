@@ -32,7 +32,7 @@ const limiter = rateLimit({
 
 app.use(
   cors({
-    origin:"http://localhost:5173",
+    origin:"attendance-app-pro-six.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
