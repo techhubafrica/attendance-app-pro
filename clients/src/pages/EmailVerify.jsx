@@ -123,7 +123,7 @@ const EmailVerify = () => {
                   id="otp"
                   placeholder="Enter the 6-digit code"
                   {...register("otp", {
-                    required: "Verification code is required",
+                    // required: "Verification code is required",
                     pattern: {
                       value: /^[0-9]{6}$/,
                       message: "Verification code must be 6 digits",
