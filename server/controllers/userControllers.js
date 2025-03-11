@@ -90,8 +90,8 @@ export const login = async (req, res) => {
     // Set the token in an HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      secure: true, 
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 day
       path: "/", // Ensure cookie is available across all routes
     });
