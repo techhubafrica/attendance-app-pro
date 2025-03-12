@@ -76,6 +76,7 @@ const DepartmentModal = ({ isOpen, onClose, department = null, isEditing = false
         await dispatch(addDepartment(data));
       }
       onClose();
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       // toast.error(error.response?.data?.message || "An error occurred");
     }

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,38 +20,53 @@ const EmailVerify = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [otp, setOtp] = useState(""); // State for OTP input
+  const [error, setError] = useState(""); // State for error messages
   const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
 
   const handleSendOtp = async () => {
     setSendingOtp(true);
     try {
       await dispatch(sendVerifyOtp()).unwrap();
+    } catch (err) {
+      setError("Failed to send OTP. Please try again.");
     } finally {
       setSendingOtp(false);
     }
   };
 
-  const onSubmit = async (data) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    // Validate OTP
+    if (!otp) {
+      setError("Verification code is required");
+      return;
+    }
+    if (!/^[0-9]{6}$/.test(otp)) {
+      setError("Verification code must be 6 digits");
+      return;
+    }
+
     setIsLoading(true);
+    setError(""); // Clear previous errors
     try {
-      await dispatch(verifyEmail(data.otp)).unwrap();
+      await dispatch(verifyEmail(otp)).unwrap();
       setIsSuccess(true);
       navigate("/verify-email");
+    } catch (err) {
+      setError(err.message || "Email verification failed");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    isAuthenticated && user && user.isAccountVerified && navigate("/");
-  }, [isAuthenticated, user]);
+    if (isAuthenticated && user && user.isAccountVerified) {
+      navigate("/");
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // If the user is already verified, show success state
   if (user?.isAccountVerified || isSuccess) {
@@ -79,7 +93,7 @@ const EmailVerify = () => {
                 className="w-full text-sm font-medium text-white bg-green-700 hover:bg-green-800"
                 asChild
               >
-                <Link to="/login">Go to Login</Link>
+                <Link to="/">Go to Home</Link>
               </Button>
             </CardContent>
           </Card>
@@ -101,7 +115,7 @@ const EmailVerify = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="otp">Verification Code</Label>
@@ -112,32 +126,21 @@ const EmailVerify = () => {
                     disabled={sendingOtp}
                     className="p-0 h-auto text-sm cursor-pointer"
                   >
-                    {sendingOtp
-                      ? "Sending..."
-                      : sendingOtp
-                      ? "Resend Code"
-                      : "Send Code"}
+                    {sendingOtp ? "Sending..." : "Send Code"}
                   </Button>
                 </div>
                 <Input
                   id="otp"
                   placeholder="Enter the 6-digit code"
-                  {...register("otp", {
-                    // required: "Verification code is required",
-                    pattern: {
-                      value: /^[0-9]{6}$/,
-                      message: "Verification code must be 6 digits",
-                    },
-                  })}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
                   className="bg-white/50 text-center text-lg tracking-wide"
                 />
-                {errors.otp && (
-                  <p className="text-sm text-red-500">{errors.otp.message}</p>
-                )}
+                {error && <p className="text-sm text-red-500">{error}</p>}
               </div>
               <Button
                 type="submit"
-                className="w-full text-sm cursor-pointer font-medium text-white bg-green-700 hover:bg-green-800 "
+                className="w-full text-sm cursor-pointer font-medium text-white bg-green-700 hover:bg-green-800"
                 disabled={isLoading}
               >
                 {isLoading ? (

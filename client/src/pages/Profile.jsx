@@ -161,6 +161,7 @@ const Profile = () => {
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-blue-800 font-medium">Full Name</Label>
                       <Input
+                      
                         id="name"
                         {...register("name", {
                           required: "Name is required",

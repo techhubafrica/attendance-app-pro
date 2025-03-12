@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAppSelector } from "@/hooks/reduxHooks";
 
+// eslint-disable-next-line no-unused-vars
 const FeatureCard = ({ icon: Icon, title, description, delay }) => {
   return (
     <div
