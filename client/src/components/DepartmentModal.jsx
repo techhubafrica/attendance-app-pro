@@ -27,7 +27,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 
 const departmentSchema = z.object({
   departmentName: z.string().min(1, "Department name is required"),
-  manager: z.string().nonempty("Manager is required for this department"),
+  // manager: z.string().nonempty("Manager is required for this department"),
   company: z.string().nonempty("Company is required"),
 });
 
@@ -150,9 +150,9 @@ const DepartmentModal = ({ isOpen, onClose, department = null, isEditing = false
                   ))}
                 </SelectContent>
               </Select>
-              {errors.manager && (
+              {/* {errors.manager && (
                 <p className="text-red-500 text-sm">{errors.manager.message}</p>
-              )}
+              )} */}
             </div>
           </div>
           <DialogFooter>
