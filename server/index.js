@@ -29,12 +29,11 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
 });
 
-// origin:"http://localhost:5173",
 
 app.use(
   cors({
-    //  origin: ["https://attendance-app-pro-tech-hub-africa.vercel.app"],
-    origin:"http://localhost:5173",
+     origin: ["https://attendance-app-pro-tech-hub-africa.vercel.app"],
+    // origin:"http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
