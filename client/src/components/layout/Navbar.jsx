@@ -73,7 +73,7 @@ const ALL_NAV_ITEMS = [
     role: "admin",
   },
   {
-    name: "Book Loans",
+    name: "Checked Out Books",
     path: "/book-loans",
     icon: BookMarked,
     role: ["admin", "faculty"],

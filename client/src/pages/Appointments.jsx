@@ -22,6 +22,7 @@ import AppointmentsList from "@/components/appointment/AppointmentsList";
 import AppointmentForm from "@/components/appointment/AppointmentForm";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import PaymentComponent from "@/components/PaymentComponent";
+import { Popover, PopoverContent } from "@/components/ui/popover";
 
 const Appointments = () => {
   const dispatch = useAppDispatch();
@@ -37,6 +38,10 @@ const Appointments = () => {
     if (userAppointments && userAppointments.length > 0) {
       const dates = userAppointments
         .map((appointment) => {
+          if (!appointment.appointmentDate) {
+            console.warn("Appointment date is missing for:", appointment);
+            return null;
+          }
           const dateObj = startOfDay(parseISO(appointment.appointmentDate));
           if (isNaN(dateObj.getTime())) {
             console.warn("Invalid date for appointment:", appointment);
@@ -92,6 +97,10 @@ const Appointments = () => {
   };
 
   const filteredAppointments = userAppointments.filter((appointment) => {
+    if (!appointment.appointmentDate) {
+      console.warn("Appointment date is missing for:", appointment);
+      return false;
+    }
     const appointmentDate = startOfDay(parseISO(appointment.appointmentDate));
     return appointmentDate.getTime() === selectedDate.getTime();
   });
@@ -144,6 +153,8 @@ const Appointments = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4">
+              <Popover>
+              {/* <PopoverContent className="" align=""> */}
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -164,6 +175,8 @@ const Appointments = () => {
                     selectedDate: "bg-green-700 text-white cursor-pointer",
                   }}
                 />
+                 {/* </PopoverContent> */}
+              </Popover>
               </CardContent>
             </Card>
 
