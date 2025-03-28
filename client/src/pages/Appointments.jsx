@@ -22,7 +22,7 @@ import AppointmentsList from "@/components/appointment/AppointmentsList";
 import AppointmentForm from "@/components/appointment/AppointmentForm";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import PaymentComponent from "@/components/PaymentComponent";
-import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const Appointments = () => {
   const dispatch = useAppDispatch();
@@ -143,42 +143,51 @@ const Appointments = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Sticky calendar card */}
             <Card className="border-blue-200 bg-white shadow-md md:sticky md:top-20 md:self-start md:h-fit">
-              <CardHeader className="bg-blue-50 border-b border-blue-100">
-                <CardTitle className="flex items-center text-blue-700">
-                  <CalendarIcon className="mr-2 h-5 w-5 text-green-600" />
-                  Calendar
-                </CardTitle>
-                <CardDescription className="text-blue-600">
-                  Select a date to view appointments
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-              <Popover>
-              {/* <PopoverContent className="" align=""> */}
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedDate(startOfDay(date));
-                    }
-                  }}
-                  className="rounded-md border border-blue-200"
-                  modifiers={{
-                    appointment: (date) => isDayWithAppointment(date),
-                    selectedDate: (date) =>
-                      startOfDay(date).toISOString().split("T")[0] ===
-                      startOfDay(selectedDate).toISOString().split("T")[0],
-                  }}
-                  modifiersClassNames={{
-                    appointment: "bg-green-100 text-green-800 font-bold cursor-pointer",
-                    selectedDate: "bg-green-700 text-white cursor-pointer",
-                  }}
-                />
-                 {/* </PopoverContent> */}
-              </Popover>
-              </CardContent>
-            </Card>
+        <CardHeader className="bg-blue-50 border-b border-blue-100">
+          <CardTitle className="flex items-center text-blue-700">
+            <CalendarIcon className="mr-2 h-5 w-5 text-green-600" />
+            Calendar
+          </CardTitle>
+          <CardDescription className="text-blue-600">
+            Select a date to view appointments
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(startOfDay(date));
+                  }
+                }}
+                className="rounded-md border border-blue-200"
+                modifiers={{
+                  appointment: (date) => isDayWithAppointment(date),
+                  selectedDate: (date) =>
+                    startOfDay(date).toISOString().split("T")[0] ===
+                    startOfDay(selectedDate).toISOString().split("T")[0],
+                }}
+                modifiersClassNames={{
+                  appointment: "bg-green-100 text-green-800 font-bold cursor-pointer",
+                  selectedDate: "bg-green-700 text-white cursor-pointer",
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </CardContent>
+      </Card>
 
             {/* Scrollable appointments card */}
             <Card className="md:col-span-2 border-green-200 bg-white shadow-md overflow-y-auto max-h-[600px]">

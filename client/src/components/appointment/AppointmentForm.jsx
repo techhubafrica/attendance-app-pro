@@ -21,6 +21,7 @@ import { fetchRoboticsLabs } from "@/redux/actions/roboticsLabActions";
 import { fetchFaculties } from "@/redux/actions/facultyActions";
 import PaymentComponent from "../PaymentComponent";
 import { useNavigate } from "react-router-dom";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const AppointmentForm = () => {
   const dispatch = useDispatch();
@@ -52,7 +53,7 @@ const AppointmentForm = () => {
     numVisitors: 1,
   });
 
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [, setShowCalendar] = useState(false);
   const [appointmentTime, setAppointmentTime] = useState("09:00");
 
   const handleChange = (e) => {
@@ -346,53 +347,49 @@ const AppointmentForm = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="appointmentDate">Appointment Date *</Label>
-                <div className="relative">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={`w-full justify-start text-left font-normal ${
-                      dateError ? "border-red-500" : ""
-                    }`}
-                    onClick={() => setShowCalendar(!showCalendar)}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.appointmentDate
-                      ? format(formData.appointmentDate, "PPP")
-                      : "Pick a date"}
-                  </Button>
-                  {showCalendar && (
-                    <div className="absolute z-10 mt-1 bg-white border rounded-md shadow-lg">
-                      <Calendar
-                        mode="single"
-                        selected={formData.appointmentDate}
-                        onSelect={handleDateSelect}
-                        initialFocus
-                        disabled={(date) =>
-                          isBefore(date, startOfDay(new Date()))
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-                {dateError && (
-                  <p className="text-sm text-red-500">{dateError}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="appointmentTime">Appointment Time *</Label>
-                <Input
-                  type="time"
-                  id="appointmentTime"
-                  name="appointmentTime"
-                  value={appointmentTime}
-                  onChange={handleTimeChange}
-                  className="w-full"
+          <div className="space-y-2">
+            <Label htmlFor="appointmentDate">Appointment Date *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={`w-full justify-start text-left font-normal ${
+                    dateError ? "border-red-500" : ""
+                  }`}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.appointmentDate
+                    ? format(formData.appointmentDate, "PPP")
+                    : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.appointmentDate}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                  disabled={(date) => isBefore(date, startOfDay(new Date()))}
                 />
-              </div>
-            </div>
+              </PopoverContent>
+            </Popover>
+            {dateError && (
+              <p className="text-sm text-red-500">{dateError}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="appointmentTime">Appointment Time *</Label>
+            <Input
+              type="time"
+              id="appointmentTime"
+              name="appointmentTime"
+              value={appointmentTime}
+              onChange={handleTimeChange}
+              className="w-full"
+            />
+          </div>
+        </div>
 
             <div className="space-y-2">
               <Label htmlFor="purpose">Purpose of Visit *</Label>
