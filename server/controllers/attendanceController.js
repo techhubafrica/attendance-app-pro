@@ -177,7 +177,14 @@ export const userAttendanceHistory = async (req, res) => {
     }
 
     // Find the employee associated with the authenticated user
-    const employee = await Employee.findOne({ user: userId });
+    const employee = await Employee.findOne({ user: userId }).populate({
+      path: "company",
+      select: "companyName companyAddress",
+      populate: {
+        path: "departments", // Populate the `department` field in Company (references Department)
+        select: "departmentName", // Include only necessary fields
+      },
+    });
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
@@ -299,7 +306,7 @@ export const getEmployeeAttendance = async (req, res) => {
       populate: {
         path: "user", // Populate the `user` field in Employee (references User)
         select: "name email", // Include only necessary fields
-      },
+      }      
     });
 
     const decimalToHoursMinutes = (decimalHours) => {

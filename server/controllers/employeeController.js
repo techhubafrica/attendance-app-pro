@@ -23,6 +23,15 @@ export const addEmployee = async (req, res) => {
       return res.status(400).json({ message: "User must have an email address" });
     }
 
+     // Check if the user is already an employee
+     const existingEmployee = await Employee.findOne({ user });
+
+     if (existingEmployee) {
+       return res.status(400).json({
+         message: "This user is already registered as an employee",
+       });
+     }
+
     // Check if the department exists
     const existingDepartment = await Department.findById(department);
     if (!existingDepartment) {
@@ -63,11 +72,10 @@ export const addEmployee = async (req, res) => {
     
     res.status(201).json(savedEmployee);
   } catch (err) {
-    // Handle specific MongoDB duplicate key error
-    if (err.code === 11000) {
-      return res.status(400).json({ 
-        message: "An employee with this email already exists",
-        field: Object.keys(err.keyPattern)[0]
+    // Handle duplicate key error
+    if (err.code === 11000 && err.keyPattern?.user) {
+      return res.status(400).json({
+        message: "This user is already assigned to an employee record",
       });
     }
 
@@ -128,7 +136,7 @@ export const deleteEmployee = async (req, res) => {
 export const getAllEmployees = async (req, res) => {
   try {
     const employees = await Employee.find()
-    .populate("user", "name email role address phone avatar") // Populate user details
+    .populate("user", "name email role address phone avatar dateOfBirth") // Populate user details
     .populate("department", "departmentName") // Populate department details
     .populate("company", " companyName"); // Populate company details
 
@@ -158,7 +166,7 @@ export const getEmployeeById = async (req, res) => {
 
     // Find the employee by ID and populate related fields
     const employee = await Employee.findById(id)
-    .populate("user", "name email role address phone avatar createdAt") // Populate user details
+    .populate("user", "name email role address phone avatar createdAt dateOfBirth") // Populate user details
       .populate("department", "departmentName") // Populate department details
       .populate("company", "companyName"); // Populate company details
 

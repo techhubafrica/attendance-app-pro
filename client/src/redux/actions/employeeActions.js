@@ -99,7 +99,6 @@ export const deleteEmployee = (id) => async (dispatch) => {
     
     await api.delete(`/employees/${id}`);
     dispatch(deleteEmployeeSuccess(id));
-    toast.success('Employee deleted successfully');
     return id;
   } catch (error) {
     const message = error.response?.data?.message || 'Failed to delete employee';

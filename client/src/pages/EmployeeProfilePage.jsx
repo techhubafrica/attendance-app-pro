@@ -22,6 +22,7 @@ import {
   ClipboardList,
   FileText
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const EmployeeProfilePage = () => {
   const { employeeId } = useParams();
@@ -41,11 +42,25 @@ const EmployeeProfilePage = () => {
 
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Not available';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    if (!dateString) return "Not available"; // Handle null/undefined
+  
+    // Check if the dateString is in the correct format
+    const isValidDate = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}.\d{3}Z)?$/.test(dateString);
+    if (!isValidDate) {
+      console.error("Invalid date format:", dateString); // Debugging log
+      return "Invalid date";
+    }
+  
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      console.error("Invalid date:", dateString); // Debugging log
+      return "Invalid date";
+    }
+  
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
     });
   };
 
@@ -120,10 +135,18 @@ const EmployeeProfilePage = () => {
             </CardHeader>
             <CardContent className="p-6">
               <div className="flex flex-col items-center mb-6">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-400 to-green-400 flex items-center justify-center text-white text-4xl font-bold mb-4">
-                  {employee.user?.name?.charAt(0) || '?'}
+                <div className="">
+                <Avatar className="w-32 h-32 rounded-full bg-gradient-to-r from-blue-400 to-green-400 flex items-center justify-center text-white text-4xl font-bold mb-4">
+                      <AvatarImage
+                        src={employee.user?.avatar || ""}
+                        alt={employee.user?.name || ""}
+                      />
+                      <AvatarFallback className={"text-blue-500"}>
+                        {employee.user?.name?.[0]?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
                 </div>
-                <h2 className="text-2xl font-bold text-blue-800">{employee.user?.name}</h2>
+                <h2 className="text-2xl font-bold text-blue-800 capitalize">{employee.user?.name}</h2>
                 <p className="text-green-700 mt-1">{employee.position || 'Employee'}</p>
                 
                 <div className="mt-3">
@@ -166,7 +189,7 @@ const EmployeeProfilePage = () => {
                   <Calendar className="w-5 h-5 text-blue-500 mt-0.5 mr-3" />
                   <div>
                     <p className="text-sm text-gray-500">Date of Birth</p>
-                    <p className="font-medium text-blue-800">{employee.dateOfBirth ? formatDate(employee.dateOfBirth) : 'Not available'}</p>
+                    <p className="font-medium text-blue-800">{employee.user?.dateOfBirth ? formatDate(employee.user.dateOfBirth) : 'Not available'}</p>
                   </div>
                 </div>
               </div>
@@ -193,7 +216,7 @@ const EmployeeProfilePage = () => {
                     <Building2 className="w-5 h-5 text-blue-500 mt-0.5 mr-3" />
                     <div>
                       <p className="text-sm text-gray-500">Company</p>
-                      <p className="font-medium text-blue-800">{employee.company?.companyName || 'Not assigned'}</p>
+                      <p className="font-medium text-blue-800 capitalize">{employee.company?.companyName || 'Not assigned'}</p>
                     </div>
                   </div>
                   
@@ -201,7 +224,7 @@ const EmployeeProfilePage = () => {
                     <Users className="w-5 h-5 text-blue-500 mt-0.5 mr-3" />
                     <div>
                       <p className="text-sm text-gray-500">Department</p>
-                      <p className="font-medium text-blue-800">{employee.department?.departmentName || 'Not assigned'}</p>
+                      <p className="font-medium text-blue-800 capitalize">{employee.department?.departmentName || 'Not assigned'}</p>
                     </div>
                   </div>
                   

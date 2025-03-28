@@ -60,6 +60,10 @@ import CompaniesPage from "./pages/CompaniesPage";
 import EmployeeProfilePage from "./pages/EmployeeProfilePage";
 import CompanyDetailsPage from "./pages/CompanyDetailsPage";
 import ScrollToTop from "./components/scrollToTop";
+import BirthdayPopup from "./components/BirthdayPopup";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
+import SettingsPage from "./pages/SettingsPage";
 
 const App = () => {
   const dispatch = useAppDispatch();
@@ -73,17 +77,28 @@ const App = () => {
 
   return (
     <>
-    <ScrollToTop />
+      <ScrollToTop />
+      <BirthdayPopup />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/companies" element={<CompaniesPage/>} />
-          <Route path="/employee/:employeeId" element={<EmployeeProfilePage/>} />
-          <Route path="/companies/:companyId" element={<CompanyDetailsPage/>} />
+          <Route path="/companies" element={<CompaniesPage />} />
+          <Route
+            path="/employee/:employeeId"
+            element={<EmployeeProfilePage />}
+          />
+          <Route
+            path="/companies/:companyId"
+            element={<CompanyDetailsPage />}
+          />
+
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-cancel" element={<PaymentCancel />} />
           <Route
             path="notifications"
             element={

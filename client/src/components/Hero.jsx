@@ -107,7 +107,7 @@ const UserWelcomeCard = ({ user }) => {
           <UserCircle className="w-8 h-8 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-2xl font-bold text-gray-800 capitalize">
           {getTimeBasedGreeting()}, {user.name} {getRandomGreeting()}
           </h2>
           <p className="text-gray-600">
@@ -182,7 +182,7 @@ const Hero = () => {
                 : "translate-y-10 opacity-0"
             }`}
           >
-            Smart Attendance Management
+            Smart Management Checkin
           </h1>
           <p
             className={`text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl transform transition-all duration-1000 delay-300 ${

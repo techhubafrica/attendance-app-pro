@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Loader2 } from "lucide-react";
 import { fetchDepartments } from "@/redux/actions/departmentActions";
 import { getDepartmentAttendance } from "@/redux/actions/departmentAttendanceActions";
+import { Link } from "react-router-dom";
 
 const DepartmentAttendance = () => {
   const dispatch = useDispatch();
@@ -106,7 +107,11 @@ const DepartmentAttendance = () => {
                 <SelectContent className="max-h-60 overflow-y-auto">
                   {departments &&
                     departments.map((dept) => (
-                      <SelectItem key={dept._id} value={dept._id} className={"cursor-pointer"}>
+                      <SelectItem
+                        key={dept._id}
+                        value={dept._id}
+                        className={"cursor-pointer"}
+                      >
                         {dept.departmentName}
                       </SelectItem>
                     ))}
@@ -145,8 +150,13 @@ const DepartmentAttendance = () => {
                       departmentAttendance.map((record, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">
-                            {record.user?.user?.name ||
-                              `Employee #${record.user?._id || "Unknown"}`}
+                            <Link
+                              to={`/employee/${record.user?._id}`}
+                              className="flex items-center"
+                            >
+                              {record.user?.user?.name ||
+                                `Employee #${record.user?._id || "Unknown"}`}
+                            </Link>
                           </TableCell>
                           <TableCell>
                             {record.date

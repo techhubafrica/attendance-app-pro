@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,38 +16,62 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { Loader2, Camera, Lock, Mail } from "lucide-react";
 import { updateUserProfile } from "@/redux/slices/authSlice";
+import { fetchEmployees } from "@/redux/actions/employeeActions";
 
 const Profile = () => {
   const { user, isLoading } = useAppSelector((state) => state.auth);
+  const { employee } = useAppSelector((state) => state.employees);
   const dispatch = useAppDispatch();
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const fileInputRef = useRef(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      name: user ? user.name : "",
-      phone: user ? user.phone : "",
-      address: user ? user.address : "",
-    },
-  });
+  useEffect(() => {
 
-  const onSubmit = (data) => {
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("phone", data.phone || "");
-    formData.append("address", data.address || "");
+    dispatch(fetchEmployees());
+  
+}, [dispatch]);
 
-    if (selectedImage) {
-      formData.append("avatar", selectedImage);
-    }
+const {
+  register,
+  handleSubmit,
+  setValue,
+  formState: { errors },
+} = useForm({
+  defaultValues: {
+    name: user ? user.name : "",
+    phone: user ? user.phone : "",
+    address: user ? user.address : "",
+    dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split("T")[0] : "",
+  },
+});
 
-    dispatch(updateUserProfile(formData));
-  };
+
+const onSubmit = (data) => {
+  const formData = new FormData();
+  formData.append("name", data.name);
+  formData.append("phone", data.phone || "");
+  formData.append("address", data.address || "");
+
+  // Normalize the date to UTC
+  if (data.dateOfBirth) {
+    const localDate = new Date(data.dateOfBirth);
+    const utcDate = new Date(
+      Date.UTC(
+        localDate.getFullYear(),
+        localDate.getMonth(),
+        localDate.getDate()
+      )
+    );
+    formData.append("dateOfBirth", utcDate.toISOString().split("T")[0]);
+  }
+
+  if (selectedImage) {
+    formData.append("avatar", selectedImage);
+  }
+
+  dispatch(updateUserProfile(formData));
+};
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -81,8 +105,8 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen py-20 px-4 bg-gradient-to-b from-blue-50 to-green-50">
-    <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8 mt-20">
+    <div className="min-h-screen py-20 px-4 ">
+      <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8 mt-20">
         <div className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-blue-800">My Profile</h1>
           <p className="text-green-700 mt-2">Manage your personal information and account settings</p>
@@ -161,7 +185,6 @@ const Profile = () => {
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-blue-800 font-medium">Full Name</Label>
                       <Input
-                      
                         id="name"
                         {...register("name", {
                           required: "Name is required",
@@ -199,7 +222,49 @@ const Profile = () => {
                         className="bg-white border-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
                       />
                     </div>
+
+                    <div className="space-y-2">
+                  <Label htmlFor="dateOfBirth" className="text-blue-800 font-medium">Date of Birth</Label>
+                  <Input
+                    id="dateOfBirth"
+                    type="date"
+                    {...register("dateOfBirth", {
+                      required: "Date of birth is required",
+                      validate: (value) => {
+                        const dob = new Date(value);
+                        const today = new Date();
+                        if (dob >= today) return "Date of birth cannot be in the future";
+                        return true;
+                      },
+                    })}
+                    className="bg-white border-blue-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                  />
+                  {errors.dateOfBirth && <p className="text-sm text-red-500">{errors.dateOfBirth.message}</p>}
+                </div>
                   </div>
+
+                  {/* Conditionally render employee details */}
+                  {user?.role === "employee" && employee && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-blue-800 font-medium">Department</Label>
+                        <Input
+                          value={employee.department?.departmentName || "N/A"}
+                          readOnly
+                          className="bg-gray-100 border-gray-200 text-gray-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-blue-800 font-medium">Company</Label>
+                        <Input
+                          value={employee.company?.companyName || "N/A"}
+                          readOnly
+                          className="bg-gray-100 border-gray-200 text-gray-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex justify-end pt-4">
                     <Button
                       type="submit"

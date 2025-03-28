@@ -68,15 +68,15 @@ export const getUserAppointments = () => async (dispatch) => {
     
     return response.data;
   } catch (error) {
-    const message = error.response?.data?.message || 'Failed to fetch your appointments';
+    const message = error.response?.data?.message 
     
     dispatch({
       type: 'appointments/appointmentError',
       payload: message,
     });
     
-    toast.error(message);
-    throw error;
+    // toast.error(message);
+    // throw error;
   }
 };
 

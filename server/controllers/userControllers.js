@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import fs from "fs-extra";
 import transporter from "../config/nodemailer.js";
+import { Employee } from "../models/employeeModel.js";
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -37,6 +38,19 @@ export const register = async (req, res) => {
       password: hashedPassword,
       role,
     });
+
+    if (role === "employee") {
+      const newEmployee = new Employee({
+        user: user._id, // Link the User document to the Employee document
+        // Add any additional fields for the Employee model here
+      });
+
+      // Save the Employee document
+      const savedEmployee = await newEmployee.save();
+
+      // Link the Employee document to the User document
+      user.employee = savedEmployee._id;
+    }
     // Save user to database
     await user.save();
     // Generate token after user is saved
@@ -44,18 +58,18 @@ export const register = async (req, res) => {
     // Set the token in an HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, 
+      secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 day
       path: "/", // Ensure cookie is available across all routes
     });
     //sending welcome email
-    const mailOptions = {
-      from: process.env.EMAIL_FROM,
-      to: email,
-      subject: "Welcome to My Attendance App!",
-      text: `Welcome ${name}!, Your account as been create using this email address ${email}`,
-    };
+const mailOptions = {
+  from: process.env.EMAIL_FROM,
+  to: email,
+  subject: "Welcome to Tech Hub Africa's Attendance Management System! 🎉",
+  text: `Dear ${name},\n\nWelcome to Tech Hub Africa's Attendance Management System! We're thrilled to have you on board. 🚀\n\nWith this platform, you can now:\n- Easily track your attendance.\n- Manage your profile and personal details.\n- Stay connected with your team and organization.\n\nThis project is proudly owned and developed by Tech Hub Africa, a leading innovator in technology solutions. We’re committed to providing you with the best tools to streamline your work and enhance productivity.\n\nIf you have any questions or need assistance, feel free to reach out to our support team at ${process.env.SUPPORT_EMAIL}.\n\nOnce again, welcome to the family! We’re excited to have you here and look forward to helping you make the most of this platform.\n\nBest regards,\nThe Tech Hub Africa Team`,
+};
     await transporter.sendMail(mailOptions);
     res.status(201).json({
       success: true,
@@ -90,7 +104,7 @@ export const login = async (req, res) => {
     // Set the token in an HttpOnly cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, 
+      secure: true,
       sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 1 day
       path: "/", // Ensure cookie is available across all routes
@@ -104,6 +118,7 @@ export const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        dateOfBirth: user.dateOfBirth
       },
     });
   } catch (error) {
@@ -123,11 +138,25 @@ export const logout = async (req, res) => {
 
 export const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id)
+      .select("-password")
+      .populate({
+        path: "employee",
+        populate: [
+          {
+            path: "company",
+            select: "companyName companyAddress", // Select the fields you want from the Company model
+          },
+          {
+            path: "department",
+            select: "departmentName", // Select the fields you want from the Department model
+          },
+        ],
+      });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
     res.json({ user });
   } catch (error) {
     console.error("Get user profile error:", error);
@@ -139,19 +168,18 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
   try {
-    const { name, phone, address } = req.body;
+    const { name, phone, address, dateOfBirth } = req.body;
     let avatar = null;
 
     // Handle image upload if a file is provided
     if (req.file) {
-      const filePath = req.file.path; // Path to the uploaded file
-      avatar = await uploadToCloudinary(filePath); // Upload to Cloudinary
-      fs.unlinkSync(filePath); // Delete the temporary file
+      const filePath = req.file.path;
+      avatar = await uploadToCloudinary(filePath);
+      fs.unlinkSync(filePath); // Delete temporary file
     }
 
     // Find the user by ID
     const user = await User.findById(req.user.id);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -162,7 +190,27 @@ export const updateUserProfile = async (req, res) => {
     user.address = address || user.address;
 
     if (avatar) {
-      user.avatar = avatar; // Update the profile image URL
+      user.avatar = avatar;
+    }
+
+    // ✅ Validate and Update `dateOfBirth`
+    if (dateOfBirth) {
+      // Parse the input date as UTC
+      const dob = new Date(dateOfBirth);
+
+      // Validate the date
+      if (isNaN(dob.getTime())) {
+        return res.status(400).json({ message: "Invalid date of birth" });
+      }
+
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0); // Normalize today's date to UTC
+
+      if (dob >= today) {
+        return res.status(400).json({ message: "Invalid date of birth" });
+      }
+
+      user.dateOfBirth = dob;
     }
 
     // Save the updated user
@@ -180,6 +228,7 @@ export const updateUserProfile = async (req, res) => {
       .json({ message: "Error updating profile", error: error.message });
   }
 };
+
 
 export const sendVerifyOtp = async (req, res) => {
   try {
@@ -259,13 +308,17 @@ export const isAuthenticated = (req, res) => {
 export const sendResetOtp = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    return res.status(400).json({ success: false, message: "Please enter your email" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Please enter your email" });
   }
   try {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "User not found" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User not found" });
     }
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     user.resetOtp = otp;
@@ -285,6 +338,7 @@ export const sendResetOtp = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
 export const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
   if (!email || !otp || !newPassword) {
@@ -298,7 +352,9 @@ export const resetPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     if (!user.resetOtp || user.resetOtp !== String(otp)) {
@@ -319,4 +375,3 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-

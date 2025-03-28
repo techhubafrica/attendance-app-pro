@@ -20,6 +20,26 @@ body{
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --background-color: white;
+  --text-color: black;
+}
+
+[data-theme='dark'] {
+  --background-color: black;
+  --text-color: white;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.theme-toggle {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+:root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);

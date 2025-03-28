@@ -6,15 +6,10 @@ import {
   TableCell, 
   TableHead, 
   TableHeader, 
-  TableRow 
+  TableRow,
+  TableCaption 
 } from '@/components/ui/table';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -25,9 +20,40 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { 
+  Calendar, 
+  Filter, 
+  Search, 
+  CheckCircle, 
+  RefreshCw, 
+  TrendingUp 
+} from 'lucide-react';
 import { format } from 'date-fns';
-import { CheckCircle, Filter, Search } from 'lucide-react';
 import { approveAppointment, getAllAppointments } from '@/redux/actions/appointmentActions';
+import AppointmentDetailsModal from '@/components/AppointmentDetailsModal';
+
+const STATUSES = [
+  'all', 
+  'scheduled', 
+  'approved', 
+  'checked_in', 
+  'completed', 
+  'cancelled'
+];
+
+const STATUS_COLORS = {
+  'scheduled': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  'approved': 'bg-blue-100 text-blue-800 border-blue-200',
+  'checked_in': 'bg-green-100 text-green-800 border-green-200',
+  'completed': 'bg-purple-100 text-purple-800 border-purple-200',
+  'cancelled': 'bg-red-100 text-red-800 border-red-200'
+};
+
+const PAYMENT_STATUS_COLORS = {
+  'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  'paid': 'bg-green-100 text-green-800 border-green-200',
+  'failed': 'bg-red-100 text-red-800 border-red-200'
+};
 
 const AdminAppointments = () => {
   const dispatch = useDispatch();
@@ -36,6 +62,8 @@ const AdminAppointments = () => {
   const [filteredAppointments, setFilteredAppointments] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
   
   useEffect(() => {
     dispatch(getAllAppointments());
@@ -45,12 +73,10 @@ const AdminAppointments = () => {
     if (appointments) {
       let filtered = [...appointments];
       
-      // Apply status filter
       if (statusFilter !== 'all') {
         filtered = filtered.filter(app => app.status === statusFilter);
       }
       
-      // Apply search filter (searching by username, lab name, or faculty name)
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         filtered = filtered.filter(app => 
@@ -68,77 +94,59 @@ const AdminAppointments = () => {
     dispatch(approveAppointment(id));
   };
   
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'scheduled':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'approved':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'checked_in':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'completed':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const renderStatistics = () => {
+    const statuses = ['scheduled', 'approved', 'checked_in', 'completed', 'cancelled'];
+    return statuses.map(status => ({
+      label: status.replace('_', ' '),
+      count: appointments?.filter(a => a.status === status).length || 0,
+      color: STATUS_COLORS[status]
+    }));
   };
   
   if (isLoading) {
     return (
       <div className="container mx-auto py-8 flex justify-center mt-40">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <RefreshCw className="animate-spin h-10 w-10 text-primary" />
       </div>
     );
   }
   
   return (
-    <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8 mt-30">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Manage Appointments</h1>
-        <p className="text-muted-foreground">
-          View and manage all user appointments
-        </p>
+    <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-8 mt-20">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold mb-2 flex items-center">
+            <TrendingUp className="mr-3 h-8 w-8 text-primary" />
+            Manage Appointments
+          </h1>
+          <p className="text-muted-foreground">
+            View and manage all user appointments
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => dispatch(getAllAppointments())} className={"cursor-pointer"}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh
+        </Button>
       </div>
       
-      <Card className="mb-8">
+      <Card>
         <CardHeader>
-          <CardTitle>Appointment Statistics</CardTitle>
-          <CardDescription>Overview of appointment status</CardDescription>
+          <CardTitle className="flex items-center">
+            <Calendar className="mr-3 h-6 w-6 text-primary" />
+            Appointment Statistics
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
-              <div className="text-2xl font-bold text-yellow-800">
-                {appointments?.filter(a => a.status === 'scheduled').length || 0}
+            {renderStatistics().map(({ label, count, color }) => (
+              <div 
+                key={label} 
+                className={`p-4 rounded-lg border ${color}`}
+              >
+                <div className="text-2xl font-bold">{count}</div>
+                <div className="text-sm capitalize">{label}</div>
               </div>
-              <div className="text-sm text-yellow-600">Scheduled</div>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <div className="text-2xl font-bold text-blue-800">
-                {appointments?.filter(a => a.status === 'approved').length || 0}
-              </div>
-              <div className="text-sm text-blue-600">Approved</div>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-              <div className="text-2xl font-bold text-green-800">
-                {appointments?.filter(a => a.status === 'checked_in').length || 0}
-              </div>
-              <div className="text-sm text-green-600">Checked In</div>
-            </div>
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-              <div className="text-2xl font-bold text-purple-800">
-                {appointments?.filter(a => a.status === 'completed').length || 0}
-              </div>
-              <div className="text-sm text-purple-600">Completed</div>
-            </div>
-            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-              <div className="text-2xl font-bold text-red-800">
-                {appointments?.filter(a => a.status === 'cancelled').length || 0}
-              </div>
-              <div className="text-sm text-red-600">Cancelled</div>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -153,26 +161,19 @@ const AdminAppointments = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        
-        <div className="w-full sm:w-56">
-          <Select 
-            value={statusFilter} 
-            onValueChange={setStatusFilter}
-          >
-            <SelectTrigger className="w-full">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent >
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="checked_in">Checked In</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-56">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUSES.map(status => (
+              <SelectItem key={status} value={status} className="capitalize">
+                {status.replace('_', ' ')}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       
       {filteredAppointments.length === 0 ? (
@@ -185,61 +186,71 @@ const AdminAppointments = () => {
           </p>
         </div>
       ) : (
-        <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Lab</TableHead>
-                <TableHead>Faculty</TableHead>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Purpose</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+        <Table>
+          <TableCaption>
+            Showing {filteredAppointments.length} appointment(s)
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Lab</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Payment Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAppointments.map((appointment) => (
+              <TableRow key={appointment._id}>
+                <TableCell className={"cursor-pointer"}>{appointment.user?.name || 'Unknown'}</TableCell>
+                <TableCell>{appointment.lab?.labName || 'N/A'}</TableCell>
+                <TableCell>
+                  {format(new Date(appointment.appointmentDate), 'MMM d, yyyy')}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={`${STATUS_COLORS[appointment.status]} capitalize`}>
+                    {appointment.status.replace('_', ' ')}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={`${PAYMENT_STATUS_COLORS[appointment.paymentStatus]} capitalize`}>
+                    {appointment.paymentStatus}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    size="sm"
+                    className="mr-2 cursor-pointer"
+                    onClick={() => {
+                      setSelectedAppointment(appointment);
+                      setModalOpen(true);
+                    }}
+                  >
+                    View Details
+                  </Button>
+                  {appointment.status === 'scheduled' && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleApprove(appointment._id)}
+                      className={"cursor-pointer"}
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Approve
+                    </Button>
+                  )}
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAppointments.map((appointment) => (
-                <TableRow key={appointment._id}>
-                  <TableCell>{appointment.user?.name || 'Unknown'}</TableCell>
-                  <TableCell>{appointment.lab?.labName || 'Unknown'}</TableCell>
-                  <TableCell>{appointment.faculty?.facultyName || 'Unknown'}</TableCell>
-                  <TableCell>
-                    {format(new Date(appointment.appointmentDate), 'PPP p')}
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-[200px] truncate" title={appointment.purpose}>
-                      {appointment.purpose}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusBadgeColor(appointment.status)}>
-                      {appointment.status.replace('_', ' ')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {appointment.status === 'scheduled' && (
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleApprove(appointment._id)}
-                        className={"cursor-pointer"}
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Approve
-                      </Button>
-                    )}
-                    {appointment.status !== 'scheduled' && (
-                      <Button size="sm" variant="outline" disabled className={"cursor-pointer"}>
-                        {appointment.status === 'approved' ? 'Approved' : 'No Actions'}
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
       )}
+      
+      <AppointmentDetailsModal
+        appointment={selectedAppointment}
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   );
 };

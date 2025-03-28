@@ -5,17 +5,18 @@ const EmployeeSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true
+      required: true,
+      unique: true, // Ensure each user can only have one employee record
     },
     department: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Department',
-      required: [true, 'Department reference is required'], // Added error message
+      // required: [true, 'Department reference is required'], // Added error message
     },
     company: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Company',
-      required: [true, 'Company reference is required'], // Added error message
+      // required: [true, 'Company reference is required'], // Added error message
     },
     salary: {
       type: Number,

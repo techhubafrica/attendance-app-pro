@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { fetchBooks, deleteBook, searchBooks } from '@/redux/actions/bookActions';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
+import React, { useEffect, useState } from "react";
+import {
+  fetchBooks,
+  deleteBook,
+  searchBooks,
+} from "@/redux/actions/bookActions";
+import {
+  Card,
+  CardContent,
+  CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -27,28 +31,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Book, Plus, Pencil, Trash2, Search } from 'lucide-react';
-import BookModal from '@/components/bookModel';
-import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import { Book, Plus, Pencil, Trash2, Search } from "lucide-react";
+import BookModal from "@/components/bookModel";
+import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 
 const Books = () => {
   const dispatch = useAppDispatch();
-  const { books, isLoading, pagination } = useAppSelector(state => state.books);
-  
+  const { books, isLoading, pagination } = useAppSelector(
+    (state) => state.books
+  );
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
 
@@ -61,16 +67,16 @@ const Books = () => {
       if (debounceTimeout) {
         clearTimeout(debounceTimeout);
       }
-      
+
       const timeoutId = setTimeout(() => {
         dispatch(searchBooks(searchTerm));
       }, 500);
-      
+
       setDebounceTimeout(timeoutId);
     } else {
       dispatch(fetchBooks(currentPage));
     }
-    
+
     return () => {
       if (debounceTimeout) {
         clearTimeout(debounceTimeout);
@@ -121,7 +127,12 @@ const Books = () => {
                 Manage your organization's book collection
               </CardDescription>
             </div>
-            <Button onClick={handleAddBook} className={"flex items-center gap-2 text-sm font-medium text-white bg-green-700 hover:bg-green-800 border border-transparent rounded-md group cursor-pointer"}>
+            <Button
+              onClick={handleAddBook}
+              className={
+                "flex items-center gap-2 text-sm font-medium text-white bg-green-700 hover:bg-green-800 border border-transparent rounded-md group cursor-pointer"
+              }
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Book
             </Button>
@@ -146,7 +157,9 @@ const Books = () => {
             </div>
           ) : books.length === 0 ? (
             <div className="text-center py-10 text-muted-foreground">
-              {searchTerm ? "No books match your search" : "No books found. Add one to get started!"}
+              {searchTerm
+                ? "No books match your search"
+                : "No books found. Add one to get started!"}
             </div>
           ) : (
             <>
@@ -164,32 +177,40 @@ const Books = () => {
                 <TableBody>
                   {books.map((book) => (
                     <TableRow key={book._id}>
-                      <TableCell className="font-medium">{book.title}</TableCell>
-                      <TableCell>{book.author || 'N/A'}</TableCell>
-                      <TableCell>{book.category || 'N/A'}</TableCell>
-                      <TableCell>{book.region?.regionName || 'N/A'}</TableCell>
+                      <TableCell className="font-medium">
+                        {book.title}
+                      </TableCell>
+                      <TableCell>{book.author || "N/A"}</TableCell>
+                      <TableCell>{book.category || "N/A"}</TableCell>
+                      <TableCell>{book.region?.regionName || "N/A"}</TableCell>
                       <TableCell>
                         {book.availableCopies !== undefined ? (
-                          <span className={book.availableCopies > 0 ? 'text-green-600' : 'text-red-600'}>
+                          <span
+                            className={
+                              book.availableCopies > 0
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }
+                          >
                             {book.availableCopies} / {book.quantity || 0}
                           </span>
                         ) : (
-                          'N/A'
+                          "N/A"
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => handleEditBook(book)}
                             className={"cursor-pointer"}
                           >
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
                           </Button>
-                          <Button 
-                            variant="destructive" 
+                          <Button
+                            variant="destructive"
                             size="sm"
                             onClick={() => handleDeleteClick(book)}
                             className={"cursor-pointer"}
@@ -209,17 +230,27 @@ const Books = () => {
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
-                        <PaginationPrevious 
-                          onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)} 
-                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        <PaginationPrevious
+                          onClick={() =>
+                            currentPage > 1 && handlePageChange(currentPage - 1)
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
-                      
-                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                        .filter(page => 
-                          page === 1 || 
-                          page === pagination.totalPages || 
-                          (page >= currentPage - 1 && page <= currentPage + 1)
+
+                      {Array.from(
+                        { length: pagination.totalPages },
+                        (_, i) => i + 1
+                      )
+                        .filter(
+                          (page) =>
+                            page === 1 ||
+                            page === pagination.totalPages ||
+                            (page >= currentPage - 1 && page <= currentPage + 1)
                         )
                         .map((page, index, array) => {
                           // Add ellipsis
@@ -240,7 +271,7 @@ const Books = () => {
                               </React.Fragment>
                             );
                           }
-                          
+
                           return (
                             <PaginationItem key={page}>
                               <PaginationLink
@@ -252,11 +283,18 @@ const Books = () => {
                             </PaginationItem>
                           );
                         })}
-                      
+
                       <PaginationItem>
-                        <PaginationNext 
-                          onClick={() => currentPage < pagination.totalPages && handlePageChange(currentPage + 1)} 
-                          className={currentPage === pagination.totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        <PaginationNext
+                          onClick={() =>
+                            currentPage < pagination.totalPages &&
+                            handlePageChange(currentPage + 1)
+                          }
+                          className={
+                            currentPage === pagination.totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
                         />
                       </PaginationItem>
                     </PaginationContent>
@@ -268,9 +306,9 @@ const Books = () => {
         </CardContent>
       </Card>
 
-      <BookModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <BookModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         book={selectedBook}
         isEditing={isEditing}
       />
@@ -281,13 +319,18 @@ const Books = () => {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete the book
-              {bookToDelete?.title && ` "${bookToDelete.title}"`}.
-              This action cannot be undone.
+              {bookToDelete?.title && ` "${bookToDelete.title}"`}. This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className={"cursor-pointer"}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 text-white cursor-pointer hover:bg-red-500">
+            <AlertDialogCancel className={"cursor-pointer"}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 text-white cursor-pointer hover:bg-red-500"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

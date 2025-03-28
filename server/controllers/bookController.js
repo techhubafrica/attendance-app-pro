@@ -131,9 +131,9 @@ export const getUserBorrowedBooks = async (req, res) => {
       .sort({ dueDate: 1 })
       .exec();
 
-    if (!borrowedBooks.length) {
-      return res.status(404).json({ message: "No borrowed books found" });
-    }
+    // if (!borrowedBooks.length) {
+    //   return res.status(404).json({ message: "No borrowed books found" });
+    // }
     res.status(200).json({ success: true, borrowedBooks });
   } catch (error) {
     console.error("Error fetching borrowed books:", error);

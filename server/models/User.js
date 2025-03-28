@@ -38,14 +38,22 @@ const UserSchema = new mongoose.Schema(
       type: String, // URL of the profile image stored in Cloudinary
       default: null,
     },
-    department: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Department",
+    dateOfBirth: {
+      type: Date,
+      validate: {
+        validator: function (value) {
+          const today = new Date();
+          const ageLimit = new Date(today.setFullYear(today.getFullYear() - 18)); // At least 18 years old
+          return value < ageLimit; // Ensure dateOfBirth is in the past & user is 18+
+        },
+        message: "User must be at least 18 years old.",
+      },
     },
     employee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Employee",
-    },
+      default: null,
+    }, // Reference to the Company model
 
     verifyOtp: { type: String, default: "" },
     verifyOtpExpireAt: { type: Number, default: 0 },

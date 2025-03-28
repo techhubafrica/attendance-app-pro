@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { logout } from "@/redux/slices/authSlice";
+import BirthdayAvatar from "../BirthdayAvatar";
 
 const ALL_NAV_ITEMS = [
   {
@@ -47,53 +48,53 @@ const ALL_NAV_ITEMS = [
     icon: UsersRound,
     role: ["admin", "employee"],
   },
-  { 
-    name: "Books", 
-    path: "/admin/books", 
-    icon: Library, 
-    role: "admin" 
+  {
+    name: "Books",
+    path: "/admin/books",
+    icon: Library,
+    role: "admin",
   },
-  { 
-    name: "Companies", 
-    path: "/admin/companies", 
-    icon: Building2, 
-    role: "admin" 
+  {
+    name: "Companies",
+    path: "/admin/companies",
+    icon: Building2,
+    role: "admin",
   },
-  { 
-    name: "Departments", 
-    path: "/admin/departments", 
-    icon: School, 
-    role: "admin" 
+  {
+    name: "Departments",
+    path: "/admin/departments",
+    icon: School,
+    role: "admin",
   },
-  { 
-    name: "Regions", 
-    path: "/admin/regions", 
-    icon: MapPin, 
-    role: "admin" 
+  {
+    name: "Regions",
+    path: "/admin/regions",
+    icon: MapPin,
+    role: "admin",
   },
-  { 
-    name: "Book Loans", 
-    path: "/book-loans", 
-    icon: BookMarked, 
-    role: ["admin", "faculty"], 
+  {
+    name: "Book Loans",
+    path: "/book-loans",
+    icon: BookMarked,
+    role: ["admin", "faculty"],
   },
-  { 
-    name: "Faculties", 
-    path: "/admin/faculties", 
-    icon: HeartHandshake, 
-    role: "admin" 
+  {
+    name: "Faculties",
+    path: "/admin/faculties",
+    icon: HeartHandshake,
+    role: "admin",
   },
-  { 
-    name: "Robotics", 
-    path: "/admin/robotics-labs", 
-    icon: Bot, 
-    role: "admin" 
+  {
+    name: "Robotics",
+    path: "/admin/robotics-labs",
+    icon: Bot,
+    role: "admin",
   },
-  { 
-    name: "Appointments", 
-    path: "/admin/appointments", 
-    icon: Clock, 
-    role: ["admin", "faculty"], 
+  {
+    name: "Appointments",
+    path: "/admin/appointments",
+    icon: Clock,
+    role: ["admin", "faculty"],
   },
   {
     name: "My Attendance",
@@ -136,10 +137,27 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user } = useAppSelector(
-    (state) => state.auth
-  );
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
+
+  // Check if it's the user's birthday
+  const [isBirthday, setIsBirthday] = useState(false);
+
+  useEffect(() => {
+    // Check if today is user's birthday
+    const checkBirthday = () => {
+      if (!user?.dateOfBirth) return false;
+
+      const today = new Date();
+      const dob = new Date(user.dateOfBirth);
+
+      return (
+        today.getDate() === dob.getDate() && today.getMonth() === dob.getMonth()
+      );
+    };
+
+    setIsBirthday(checkBirthday());
+  }, [user]);
 
   // Close mobile menu on window resize
   useEffect(() => {
@@ -187,17 +205,6 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Get initials for avatar fallback
-  const getInitials = () => {
-    if (!user?.name) return "U";
-    return user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
   const NavItem = ({ name, path, icon: Icon, isMobile }) => (
     <Button
       variant="ghost"
@@ -216,6 +223,19 @@ const Navbar = () => {
     </Button>
   );
 
+  // For birthday celebration in dropdown
+  const BirthdayLabel = () => {
+    if (!isBirthday) return null;
+
+    return (
+      <div className="flex items-center justify-center mt-2 mb-1">
+        <div className="px-3 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">
+          🎉 Happy Birthday! 🎂
+        </div>
+      </div>
+    );
+  };
+
   return (
     <nav className="bg-white border-b border-gray-200 fixed z-10 w-full">
       <div className="px-4 mx-auto max-w-7xl sm:px-6">
@@ -225,7 +245,7 @@ const Navbar = () => {
               <Link to="/">
                 <img
                   className="w-auto h-8 transition-transform duration-200 hover:scale-105 cursor-pointer"
-                  src="/attendance.png"
+                  src="/tech-hub.svg"
                   alt="Logo"
                   onError={(e) => {
                     e.target.src = "https://via.placeholder.com/32";
@@ -280,22 +300,13 @@ const Navbar = () => {
                     className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200"
                     aria-label="User menu"
                   >
-                    <Avatar className="w-8 h-8 ring-2 ring-white cursor-pointer">
-                      <AvatarImage
-                        src={user?.avatar}
-                        alt={user?.name}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="text-indigo-600 bg-indigo-100">
-                        {getInitials()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <BirthdayAvatar user={user} className="w-8 h-8" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
+                      <p className="text-sm font-medium leading-none capitalize">
                         {user?.name}
                       </p>
                       <p className="text-xs leading-none text-gray-700 capitalize">
@@ -306,15 +317,18 @@ const Navbar = () => {
                       </p>
                     </div>
                   </DropdownMenuLabel>
+
+                  {/* Add birthday message in dropdown if it's user's birthday */}
+                  <BirthdayLabel />
                   <DropdownMenuSeparator />
                   {/* {!isLoading && user?.isAccountVerified && ( */}
-                    <DropdownMenuItem
-                      onClick={() => navigate("/profile")}
-                      className="cursor-pointer"
-                    >
-                      <User className="w-4 h-4 mr-2" /> Profile
-                    </DropdownMenuItem>
-                   {/* )} */}
+                  <DropdownMenuItem
+                    onClick={() => navigate("/profile")}
+                    className="cursor-pointer"
+                  >
+                    <User className="w-4 h-4 mr-2" /> Profile
+                  </DropdownMenuItem>
+                  {/* )} */}
 
                   <DropdownMenuItem
                     onClick={() => navigate("/settings")}
@@ -364,27 +378,19 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="sm:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1">
-    {user?.isAccountVerified && 
-      NAV_ITEMS.map((item) => (
-        <NavItem key={item.path} {...item} isMobile={true} />
-      ))
-    }
-  </div>
+            {user?.isAccountVerified &&
+              NAV_ITEMS.map((item) => (
+                <NavItem key={item.path} {...item} isMobile={true} />
+              ))}
+          </div>
 
           <div className="pt-4 pb-3 border-t border-gray-200">
             {isAuthenticated ? (
               <>
                 <div className="flex items-center px-4">
                   <div className="flex-shrink-0">
-                    <Avatar>
-                      <AvatarImage
-                        src={user?.avatar || ""}
-                        alt={user?.name || ""}
-                      />
-                      <AvatarFallback>
-                        {user?.name?.[0]?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
+                    {/* Replace mobile avatar with birthday-aware avatar */}
+                    <BirthdayAvatar user={user} />
                   </div>
                   <div className="ml-3">
                     <div className="text-base font-medium text-gray-800">
@@ -397,17 +403,25 @@ const Navbar = () => {
                       {user?.email}
                     </div>
                   </div>
+                  {/* Add birthday badge on mobile */}
+                  {isBirthday && (
+                    <div className="ml-auto">
+                      <div className="px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">
+                        🎂 Birthday!
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="px-2 mt-3 space-y-1">
                   {/* {!isLoading && user?.isAccountVerified && ( */}
-                    <Button
-                      variant="ghost"
-                      className="justify-start w-full"
-                      onClick={() => handleMobileNavigation("/profile")}
-                    >
-                      <User className="w-5 h-5 mr-2" />
-                      Profile
-                    </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start w-full"
+                    onClick={() => handleMobileNavigation("/profile")}
+                  >
+                    <User className="w-5 h-5 mr-2" />
+                    Profile
+                  </Button>
                   {/* )} */}
 
                   <Button
